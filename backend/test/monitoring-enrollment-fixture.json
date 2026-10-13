@@ -1,0 +1,27 @@
+{
+  "id": "d98a51c6-8026-43aa-b06f-321be845f396",
+  "status": "active",
+  "idea": {
+    "id": "ede8c90a-af1b-495c-b89b-4a2eb1a51217",
+    "title": "Garden",
+    "summary": "Shared garden plots for neighborhood apartment residents",
+    "customer": "Apartment residents",
+    "problem": "No growing space",
+    "businessModel": "Membership",
+    "category": "Local service"
+  },
+  "founder": {
+    "budget": "private budget",
+    "hours": "private hours",
+    "skills": "private skills",
+    "experience": "private experience",
+    "distribution": "private contacts",
+    "region": "Chicago"
+  },
+  "lastCheckedAt": null,
+  "nextCheckAt": "2026-10-13T12:00:00.000Z",
+  "expiresAt": "2026-10-20T12:00:00.000Z",
+  "message": "Daily monitoring is scheduled. The first check establishes an evidence baseline.",
+  "events": [],
+  "token": "nAbUEQ2V_qkFA6fQSMEvNkvmLtVh_KeADKngnhvQ7tM"
+}

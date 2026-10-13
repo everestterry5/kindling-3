@@ -1,0 +1,276 @@
+{
+  "id": "d98a51c6-8026-43aa-b06f-321be845f396",
+  "status": "active",
+  "idea": {
+    "id": "ede8c90a-af1b-495c-b89b-4a2eb1a51217",
+    "title": "Garden",
+    "summary": "Shared garden plots for neighborhood apartment residents",
+    "customer": "Apartment residents",
+    "problem": "No growing space",
+    "businessModel": "Membership",
+    "category": "Local service"
+  },
+  "founder": {
+    "budget": "private budget",
+    "hours": "private hours",
+    "skills": "private skills",
+    "experience": "private experience",
+    "distribution": "private contacts",
+    "region": "Chicago"
+  },
+  "lastCheckedAt": "2026-10-14T12:00:00.000Z",
+  "nextCheckAt": "2026-10-15T12:00:00.000Z",
+  "expiresAt": "2026-10-21T12:00:00.000Z",
+  "message": "New sourced evidence changed the assessment. Review the update below.",
+  "events": [
+    {
+      "id": "2b4f835a-77a6-4c1d-84ac-5f6fd66ca796",
+      "checkedAt": "2026-10-14T12:00:00.000Z",
+      "summary": "New evidence identifies a competitor offer to validate; this is a research lead.",
+      "confidence": "medium",
+      "sourceURLs": [
+        "https://example.org/competitors"
+      ],
+      "sources": [
+        {
+          "url": "https://example.org/competitors",
+          "title": "competitors evidence",
+          "publishedAt": "2026-10-12"
+        }
+      ],
+      "score": 52
+    }
+  ],
+  "report": {
+    "sections": [
+      {
+        "id": "readiness",
+        "headline": "Assessment readiness",
+        "score": 52,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "entry",
+        "headline": "Assessment entry",
+        "score": 52,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "competitors",
+        "headline": "Assessment competitors",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "momentum",
+        "headline": "Assessment momentum",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "fit",
+        "headline": "Assessment fit",
+        "score": 52,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "niche",
+        "headline": "Assessment niche",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "verdict",
+        "headline": "Assessment verdict",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "assumptions",
+        "headline": "Assessment assumptions",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "scenario",
+        "headline": "Assessment scenario",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "economics",
+        "headline": "Assessment economics",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "validation",
+        "headline": "Assessment validation",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "plan",
+        "headline": "Assessment plan",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      },
+      {
+        "id": "compare",
+        "headline": "Assessment compare",
+        "score": null,
+        "confidence": "medium",
+        "body": "New sourced evidence changes an assumption to test.",
+        "actions": [
+          "Check the source"
+        ],
+        "unknowns": [
+          "Willingness to pay"
+        ],
+        "sourceURLs": [
+          "https://example.org/competitors"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://example.org/competitors",
+        "title": "competitors evidence",
+        "publishedAt": "2026-10-12"
+      },
+      {
+        "url": "https://example.org/market",
+        "title": "market evidence",
+        "publishedAt": "2026-10-12"
+      },
+      {
+        "url": "https://example.org/trends",
+        "title": "trends evidence",
+        "publishedAt": "2026-10-12"
+      }
+    ],
+    "researchStatus": "available",
+    "generatedAt": "2026-10-13T15:52:47.047Z",
+    "provider": "DeepSeek"
+  }
+}
