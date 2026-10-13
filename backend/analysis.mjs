@@ -40,6 +40,12 @@ export async function researchIdea(body, env, fetchImpl) {
 }
 export function buildAnalysisRequest(body, research, model) {
   const example = { sections: SECTION_IDS.map(id => ({ id, headline: 'Specific assessment', score: null, confidence: 'low', body: 'Reasoning specific to this idea. Distinguish facts, assumptions and inferences.', actions: ['One measurable next step'], unknowns: ['Missing evidence'], sourceURLs: [] })) };
+  example.nicheMap = {
+    xLow: 'Broad audience', xHigh: 'Focused niche', yLow: 'Self-service', yHigh: 'Hands-on help',
+    initialPosition: { x: 0.5, y: 0.5 },
+    zones: ['low_low', 'high_low', 'low_high', 'high_high'].map(id => ({ id, label: 'Short positioning name', score: 50, explanation: 'Why this positioning fits the supplied customer, offer and founder resources; state assumptions.' })),
+    competitors: [{ name: 'Sourced alternative', x: 0.3, y: 0.4, rationale: 'Evidence and inference behind placement', sourceURLs: [] }]
+  };
   return {
     model, response_format: { type: 'json_object' }, max_tokens: 8000,
     messages: [
@@ -52,6 +58,9 @@ export function buildAnalysisRequest(body, research, model) {
         'Do not infer skills, income, audience, customer traction, historical scores, market growth or competitor counts. Empty fields mean unknown.',
         'Market facts must cite matching sourceURLs from the supplied research. Cite only URLs actually supplied. Explain date, geography and relevance limits. Search results are evidence leads, not verified truth.',
         'Without useful cited evidence, competitors and momentum must explicitly say not researched, describe research steps, and avoid current company/pricing/trend claims. Never invent market time series.',
+        'nicheMap: choose two clear, independent positioning axes appropriate to this idea. xLow/xHigh and yLow/yHigh are opposing endpoints, each at most 30 characters. Coordinates are normalized 0..1; y=0 is the bottom (yLow), y=1 the top (yHigh). initialPosition is the current idea, inferred from user inputs.',
+        'Include exactly four zones low_low, high_low, low_high, high_high. Each has a label <=40 characters, integer score 0..100 and explanation <=450 characters. Scores assess conditional positioning fit to this customer, offer and founder resources, NOT market success probability or proven demand. Explain tradeoffs and missing evidence. Empty market space alone must never imply high fit.',
+        'nicheMap competitors: at most six actual named alternatives supported by supplied research, with x/y, rationale <=450 characters explaining inferred placement, and one or more exact supplied sourceURLs. Do not use articles, search engines or publishers as competitors. Omit unsupported entities. Use an empty list if no relevant competitors are evidenced. All plotted positions are AI inferences, not measured market shares.',
         'Niche: propose testable positioning. Verdict: next decision and why. Assumptions: falsifiable risks. Scenario: show conditional changes and assumptions, no success prediction.',
         'Economics: explicit assumptions and arithmetic for price minus variable cost, CAC and break-even; unknown if inputs missing. Validation: measurable experiments with pass/fail criteria.',
         'Plan: draft executive summary, customer, offer, revenue and milestones. Compare: criteria for comparing another idea, not a claim to have seen other ideas.',
@@ -86,8 +95,40 @@ export function normalizeAnalysis(raw, research, body) {
     const incompleteFit = id === 'fit' && profileFields.some(k => !body.founder[k].trim());
     return { id, headline: s.headline, score: incompleteFit ? null : score, confidence: sourceURLs.length ? s.confidence : 'low', body: s.body, actions: s.actions, unknowns: incompleteFit ? [...s.unknowns, 'Complete missing founder-profile fields.'] : s.unknowns, sourceURLs };
   });
-  return { sections, sources: research.sources.map(({ excerpt, ...s }) => s), researchStatus: research.status, generatedAt: new Date().toISOString(), provider: 'DeepSeek' };
+  return { sections, nicheMap: normalizeNicheMap(raw.nicheMap, research), sources: research.sources.map(({ excerpt, ...s }) => s), researchStatus: research.status, generatedAt: new Date().toISOString(), provider: 'DeepSeek' };
 }
+// Optional for backward compatibility; malformed maps never invalidate a usable report.
+export function normalizeNicheMap(raw, research) {
+  if (!raw || typeof raw !== 'object') return null;
+  const short = (v, n) => typeof v === 'string' && v.trim().length > 0 && v.length <= n;
+  const coord = v => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1;
+  if (!['xLow','xHigh','yLow','yHigh'].every(k => short(raw[k],30)) ||
+      !coord(raw.initialPosition?.x) || !coord(raw.initialPosition?.y) ||
+      !Array.isArray(raw.zones) || raw.zones.length !== 4 || !Array.isArray(raw.competitors) || raw.competitors.length > 6) return null;
+  const ids = ['low_low','high_low','low_high','high_high'];
+  const zones = [];
+  for (const id of ids) {
+    const matches = raw.zones.filter(z => z?.id === id);
+    if (matches.length !== 1) return null;
+    const z = matches[0];
+    if (!short(z.label,40) || !short(z.explanation,450) || !Number.isInteger(z.score) || z.score < 0 || z.score > 100) return null;
+    zones.push({ id, label:z.label, score:z.score, explanation:z.explanation });
+  }
+  const allowed = new Set(research.sources.map(s => s.url));
+  const names = new Set();
+  const competitors = raw.competitors.flatMap(c => {
+    if (!c || !short(c.name,60) || !short(c.rationale,450) || !coord(c.x) || !coord(c.y) ||
+        !Array.isArray(c.sourceURLs) || c.sourceURLs.length > 8) return [];
+    const sourceURLs = [...new Set(c.sourceURLs.filter(u => typeof u === 'string').map(safeURL).filter(u => allowed.has(u)))];
+    const key = c.name.toLowerCase().trim();
+    if (!sourceURLs.length || names.has(key)) return [];
+    names.add(key);
+    return [{ name:c.name, x:c.x, y:c.y, rationale:c.rationale, sourceURLs }];
+  });
+  return { xLow:raw.xLow, xHigh:raw.xHigh, yLow:raw.yLow, yHigh:raw.yHigh,
+    initialPosition:{ x:raw.initialPosition.x, y:raw.initialPosition.y }, zones, competitors };
+}
+
 export async function generateAnalysis(body, env, fetchImpl) {
   const research = await researchIdea(body, env, fetchImpl);
   const response = await fetchImpl('https://api.deepseek.com/chat/completions', {
