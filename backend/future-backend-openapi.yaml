@@ -1,0 +1,445 @@
+openapi: 3.1.0
+info:
+  title: Kindling API
+  version: 0.1.0
+  description: Starting contract for the Kindling 3 SwiftUI backend.
+servers:
+  - url: https://api.example.com/v1
+security:
+  - bearerAuth: []
+paths:
+  /me/profile:
+    get:
+      operationId: getProfile
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+    put:
+      operationId: putProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfileInput" }
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+  /ideas:
+    get:
+      operationId: listIdeas
+      responses:
+        "200":
+          description: Current user's non-deleted ideas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Idea" }
+    post:
+      operationId: createIdea
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IdeaInput" }
+      responses:
+        "201":
+          description: Created idea
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Idea" }
+  /ideas/{ideaId}:
+    parameters:
+      - $ref: "#/components/parameters/IdeaId"
+    get:
+      operationId: getIdea
+      responses:
+        "200":
+          description: Idea
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Idea" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      operationId: updateIdea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/IdeaInput"
+                - type: object
+                  required: [version]
+                  properties:
+                    version: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Updated idea
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Idea" }
+        "409": { $ref: "#/components/responses/Conflict" }
+    delete:
+      operationId: archiveIdea
+      responses:
+        "204": { description: Idea archived }
+  /ideas/{ideaId}/analysis-jobs:
+    parameters:
+      - $ref: "#/components/parameters/IdeaId"
+    post:
+      operationId: startAnalysis
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Analysis queued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+    get:
+      operationId: listAnalysisJobs
+      responses:
+        "200":
+          description: Analysis jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Job" }
+  /ideas/{ideaId}/validation/experiments:
+    parameters:
+      - $ref: "#/components/parameters/IdeaId"
+    get:
+      operationId: listExperiments
+      responses:
+        "200":
+          description: Validation experiments
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Experiment" }
+    post:
+      operationId: createExperiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExperimentInput" }
+      responses:
+        "201":
+          description: Created experiment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Experiment" }
+  /ideas/{ideaId}/business-plan:
+    parameters:
+      - $ref: "#/components/parameters/IdeaId"
+    get:
+      operationId: getBusinessPlan
+      responses:
+        "200":
+          description: Business plan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessPlan" }
+    put:
+      operationId: putBusinessPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BusinessPlanInput" }
+      responses:
+        "200":
+          description: Updated business plan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessPlan" }
+  /ideas/{ideaId}/market-updates:
+    parameters:
+      - $ref: "#/components/parameters/IdeaId"
+    get:
+      operationId: listMarketUpdates
+      responses:
+        "200":
+          description: Sourced market updates
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/MarketUpdate" }
+  /ideas/{ideaId}/conversations:
+    parameters:
+      - $ref: "#/components/parameters/IdeaId"
+    post:
+      operationId: createConversation
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Conversation" }
+  /conversations/{conversationId}/messages:
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: listMessages
+      responses:
+        "200":
+          description: Conversation messages
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Message" }
+    post:
+      operationId: sendMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, minLength: 1, maxLength: 10000 }
+      responses:
+        "201":
+          description: User message and assistant response
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [userMessage, assistantMessage]
+                properties:
+                  userMessage: { $ref: "#/components/schemas/Message" }
+                  assistantMessage: { $ref: "#/components/schemas/Message" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdeaId:
+      name: ideaId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, maxLength: 200 }
+  responses:
+    NotFound:
+      description: Resource not found or not visible to current user
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+    Conflict:
+      description: Optimistic concurrency conflict
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+  schemas:
+    ProfileInput:
+      type: object
+      properties:
+        stage: { type: string }
+        challenges: { type: array, items: { type: string } }
+        businessType: { type: string }
+        teamSize: { type: string }
+        experience: { type: string }
+        goals: { type: array, items: { type: string } }
+        timeAvailable: { type: string }
+        budgetComfort: { type: string }
+        decisionStyle: { type: string }
+        discoverySource: { type: string }
+        onboardingCompleted: { type: boolean }
+    Profile:
+      allOf:
+        - $ref: "#/components/schemas/ProfileInput"
+        - type: object
+          required: [id, onboardingCompleted, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    IdeaInput:
+      type: object
+      required: [id, title, summary, category, lifecycle, decision, accent]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 240 }
+        summary: { type: string, maxLength: 20000 }
+        customer: { type: string, maxLength: 5000, default: "" }
+        problem: { type: string, maxLength: 5000, default: "" }
+        businessModel: { type: string, maxLength: 5000, default: "" }
+        category: { type: string, maxLength: 100 }
+        viabilityScore: { type: integer, minimum: 0, maximum: 100 }
+        founderFit: { type: integer, minimum: 0, maximum: 100 }
+        entryDifficulty: { type: integer, minimum: 0, maximum: 100 }
+        competitorCount: { type: integer, minimum: 0 }
+        marketDirection: { type: string, enum: ["up", "flat", "down", "unknown"] }
+        lifecycle:
+          type: string
+          enum: [captured, analyzed, validating, planning, building, launched]
+        validationProgress: { type: integer, minimum: 0, maximum: 100 }
+        businessPlanProgress: { type: integer, minimum: 0, maximum: 100 }
+        decision:
+          type: string
+          enum: [explore, validate, pursue, watch, pause]
+        accent:
+          type: string
+          enum: [coral, blue, orange, green, pink]
+    Idea:
+      allOf:
+        - $ref: "#/components/schemas/IdeaInput"
+        - type: object
+          required: [createdAt, updatedAt, version]
+          properties:
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+            archivedAt: { type: [string, "null"], format: date-time }
+            version: { type: integer, minimum: 1 }
+    Job:
+      type: object
+      required: [id, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [queued, running, completed, failed] }
+        errorCode: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ExperimentInput:
+      type: object
+      required: [type, title, hypothesis, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        hypothesis: { type: string }
+        status: { type: string, enum: [draft, active, completed, cancelled] }
+        targetMetric: { type: string }
+        targetValue: { type: number }
+    Experiment:
+      allOf:
+        - $ref: "#/components/schemas/ExperimentInput"
+        - type: object
+          required: [id, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    BusinessPlanInput:
+      type: object
+      properties:
+        executiveSummary: { type: string }
+        targetCustomer: { type: string }
+        positioning: { type: string }
+        revenueModel: { type: string }
+        goToMarket: { type: string }
+        operations: { type: string }
+        financialPlan: { type: string }
+        risks: { type: string }
+        milestones: { type: string }
+        completedSections: { type: array, items: { type: string } }
+        version: { type: integer, minimum: 1 }
+    BusinessPlan:
+      allOf:
+        - $ref: "#/components/schemas/BusinessPlanInput"
+        - type: object
+          required: [id, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    Source:
+      type: object
+      required: [id, url, title, retrievedAt]
+      properties:
+        id: { type: string, format: uuid }
+        url: { type: string, format: uri }
+        title: { type: string }
+        publisher: { type: string }
+        summary: { type: string }
+        retrievedAt: { type: string, format: date-time }
+    MarketUpdate:
+      type: object
+      required: [id, kind, signal, impact, recommendedMove, scoreDelta, occurredAt, sources]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [positive, negative, opportunity, neutral] }
+        signal: { type: string }
+        impact: { type: string }
+        recommendedMove: { type: string }
+        scoreDelta: { type: integer }
+        confidence: { type: [integer, "null"], minimum: 0, maximum: 100 }
+        occurredAt: { type: string, format: date-time }
+        sources: { type: array, items: { $ref: "#/components/schemas/Source" } }
+    Conversation:
+      type: object
+      required: [id, ideaId, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        ideaId: { type: string, format: uuid }
+        title: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Message:
+      type: object
+      required: [id, role, text, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        role: { type: string, enum: [user, assistant, system] }
+        text: { type: string }
+        insight: { type: [string, "null"] }
+        action: { type: [string, "null"] }
+        signal: { type: [string, "null"], enum: [risk, action, opportunity, research, personal, change, null] }
+        createdAt: { type: string, format: date-time }
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: { type: object, additionalProperties: true }
+            requestId: { type: string }
+

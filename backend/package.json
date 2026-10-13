@@ -1,0 +1,17 @@
+{
+  "name": "kindling-openai-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@apple/app-store-server-library": "3.1.0"
+  },
+  "packageManager": "pnpm@11.19.0"
+}

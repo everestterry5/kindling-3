@@ -1,0 +1,322 @@
+openapi: 3.1.0
+info:
+  title: Kindling AI API
+  version: 1.3.0
+  description: Release candidate AI proxy with persisted free allowance and Apple-verified Pro access.
+servers:
+  - url: https://kindling-backend.example.com
+paths:
+  /health:
+    get:
+      operationId: health
+      responses:
+        "200":
+          description: Service health
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok, aiReady, analysisReady, researchReady, subscriptionsReady, monitoringReady]
+                properties:
+                  ok: { type: boolean }
+                  aiReady: { type: boolean }
+                  analysisReady: { type: boolean }
+                  researchReady: { type: boolean }
+                  subscriptionsReady: { type: boolean }
+                  monitoringReady: { type: boolean }
+  /v1/ai/respond:
+    post:
+      operationId: respond
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KindlingAIRequest" }
+      responses:
+        "200":
+          description: Structured Kindling AI response
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KindlingAIResponse" }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "400": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/ideas/analyze:
+    post:
+      operationId: analyzeIdea
+      description: DeepSeek report, optional Tavily research. Uses the same verified entitlement and free allowance as chat.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AnalysisRequest" }
+      responses:
+        "200":
+          description: Complete report with thirteen sections, source metadata and generation timestamp. Missing evidence is explicit; scores may be null.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnalysisReport" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/monitoring/enroll:
+    post:
+      operationId: enrollMonitor
+      description: Explicit daily-sharing consent and a current Apple-verified subscription required. One idea per original transaction. Retrying the same idea rotates its token without resetting the daily schedule. Client reports/scores are ignored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MonitorEnrollment' }
+      responses:
+        '200':
+          description: Save token in secure storage; it is returned only on enrollment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/MonitorSnapshot' }
+                  - type: object
+                    required: [token]
+                    properties:
+                      token: { type: string, minLength: 43, maxLength: 43 }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /v1/monitoring/status:
+    post:
+      operationId: monitorStatus
+      description: Authenticated read only; does not trigger research or update an assessment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MonitorCapability' }
+      responses:
+        '200':
+          description: Current schedule and at most ten meaningful evidence-change events.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MonitorSnapshot' }
+        '404': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /v1/monitoring/delete:
+    post:
+      operationId: deleteMonitor
+      description: Deletes proof, idea/profile, evidence and events. Missing/purged IDs return success for retries; an existing record requires its valid token. A hashed owner attempt marker remains up to 24 hours to prevent budget resets.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MonitorCapability' }
+      responses:
+        '200':
+          description: Monitoring data removed or already absent.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted]
+                properties:
+                  deleted: { const: true }
+        '404': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+components:
+  responses:
+    Error:
+      description: Request error
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error: { type: string }
+  schemas:
+    KindlingAIRequest:
+      type: object
+      additionalProperties: false
+      required: [clientId, idea, messages]
+      properties:
+        clientId: { type: string, minLength: 8, maxLength: 128 }
+        signedTransaction:
+          type: string
+          maxLength: 20000
+          description: App Store signed JWS from a verified current entitlement; optional for free requests. Never send an isPro flag.
+        idea: { $ref: "#/components/schemas/Idea" }
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items:
+            type: object
+            additionalProperties: false
+            required: [role, content]
+            properties:
+              role: { type: string, enum: [user, assistant] }
+              content: { type: string, minLength: 1, maxLength: 4000 }
+    Idea:
+      type: object
+      required: [title, summary, lifecycle]
+      properties:
+        title: { type: string }
+        summary: { type: string }
+        customer: { type: string }
+        problem: { type: string }
+        businessModel: { type: string }
+        category: { type: string }
+        viabilityScore: { type: integer }
+        founderFit: { type: integer }
+        entryDifficulty: { type: integer }
+        competitorCount: { type: integer }
+        marketDirection: { type: string }
+        lifecycle: { type: string }
+        validationProgress: { type: integer }
+        businessPlanProgress: { type: integer }
+        decision: { type: string }
+    KindlingAIResponse:
+      type: object
+      additionalProperties: false
+      required: [text, insight, action, signal, sources, researchedAt]
+      properties:
+        text: { type: string }
+        insight: { type: string }
+        action: { type: string }
+        signal:
+          type: string
+          enum: [risk, action, opportunity, research, personal, change]
+        sources:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            additionalProperties: false
+            required: [title, url]
+            properties:
+              title: { type: string }
+              url: { type: string, format: uri }
+        researchedAt: { type: string, format: date-time }
+
+    AnalysisRequest:
+      type: object
+      required: [clientId, idea, founder, consent]
+      properties:
+        clientId: { type: string, minLength: 8, maxLength: 128 }
+        signedTransaction: { type: string, maxLength: 20000 }
+        consent: { const: true }
+        idea:
+          type: object
+          required: [title, summary, customer, problem, businessModel, category]
+          additionalProperties: { type: string, maxLength: 6000 }
+        founder:
+          type: object
+          required: [budget, hours, skills, experience, distribution, region]
+          additionalProperties: { type: string, maxLength: 1000 }
+    AnalysisReport:
+      type: object
+      required: [sections, sources, researchStatus, generatedAt, provider]
+      properties:
+        provider: { type: string }
+        generatedAt: { type: string, format: date-time }
+        researchStatus: { type: string, enum: [available, unavailable] }
+        sources:
+          type: array
+          items:
+            type: object
+            required: [title, url, publishedAt]
+            properties:
+              title: { type: string }
+              url: { type: string, format: uri }
+              publishedAt: { type: string }
+        sections:
+          type: array
+          minItems: 13
+          maxItems: 13
+          items:
+            type: object
+            required: [id, headline, score, confidence, body, actions, unknowns, sourceURLs]
+            properties:
+              id: { type: string, enum: [readiness, entry, competitors, momentum, fit, niche, verdict, assumptions, scenario, economics, validation, plan, compare] }
+              headline: { type: string }
+              score: { type: [integer, 'null'], minimum: 0, maximum: 100 }
+              confidence: { type: string, enum: [low, medium, high] }
+              body: { type: string }
+              actions: { type: array, items: { type: string } }
+              unknowns: { type: array, items: { type: string } }
+              sourceURLs: { type: array, items: { type: string, format: uri } }
+    MonitorCapability:
+      type: object
+      required: [id, token]
+      properties:
+        id: { type: string, format: uuid }
+        token: { type: string, minLength: 43, maxLength: 43 }
+    MonitorEnrollment:
+      type: object
+      required: [signedTransaction, consent, idea, founder]
+      properties:
+        signedTransaction: { type: string, maxLength: 30000 }
+        consent: { const: true }
+        clientId: { type: string, description: Ignored; never authorizes monitoring. }
+        idea:
+          type: object
+          required: [id, title, summary, customer, problem, businessModel, category]
+          properties:
+            id: { type: string, format: uuid }
+            title: { type: string, minLength: 1, maxLength: 6000 }
+            summary: { type: string, minLength: 12, maxLength: 6000 }
+            customer: { type: string, maxLength: 6000 }
+            problem: { type: string, maxLength: 6000 }
+            businessModel: { type: string, maxLength: 6000 }
+            category: { type: string, maxLength: 6000 }
+        founder:
+          type: object
+          required: [budget, hours, skills, experience, distribution, region]
+          additionalProperties: { type: string, maxLength: 1000 }
+    MonitorSnapshot:
+      type: object
+      required: [id, status, idea, founder, lastCheckedAt, nextCheckAt, expiresAt, message, events]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [active, paused, expired] }
+        idea: { type: object }
+        founder: { type: object }
+        lastCheckedAt: { type: [string, 'null'], format: date-time }
+        nextCheckAt: { type: [string, 'null'], format: date-time }
+        expiresAt: { type: string, format: date-time }
+        message: { type: string }
+        report: { $ref: '#/components/schemas/AnalysisReport' }
+        events:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            required: [id, checkedAt, summary, confidence, sourceURLs, sources]
+            properties:
+              id: { type: string, format: uuid }
+              checkedAt: { type: string, format: date-time }
+              summary: { type: string }
+              confidence: { type: string, enum: [low, medium, high] }
+              previousScore: { type: integer, minimum: 0, maximum: 100 }
+              score: { type: integer, minimum: 0, maximum: 100 }
+              sourceURLs: { type: array, items: { type: string, format: uri } }
+              sources:
+                type: array
+                items:
+                  type: object
+                  required: [title, url, publishedAt]
+                  properties:
+                    title: { type: string }
+                    url: { type: string, format: uri }
+                    publishedAt: { type: string }
