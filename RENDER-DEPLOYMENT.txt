@@ -1,0 +1,22 @@
+Kindling Render deployment — October 13, 2026
+
+Existing service: kindling-3 (srv-dacpl2u1egvs73auljjg)
+Repository: everestterry5/kindling-3; branch main
+Backend sources uploaded through the authenticated GitHub UI and verified against tested local files.
+
+Render build settings saved:
+Dockerfile: backend/Dockerfile
+Build context: backend
+Health check: /health
+Auto-deploy: Off
+Model setting: deepseek-flash
+
+Still required before live use:
+- Owner approval of $7 server + $0.25 1 GB persistent disk monthly hosting, before tax/usage.
+- Mount persistent disk at /data; only one running instance.
+- Enter DEEPSEEK_API_KEY directly in Render. TAVILY_API_KEY is required for live market research.
+- Keep PRO_PURCHASES_ENABLED and MONITORING_ENABLED false until provider and Apple sandbox smoke tests pass.
+- Deploy manually, verify /health and a real analysis, then set the iOS Release backend URL.
+- Do not submit or publish the app without owner consent.
+
+The Blueprint is a deployment reference, not applied to this existing service. Creating it separately could create a second paid service.

@@ -1,0 +1,36 @@
+# Deployment draft only. This creates paid hosting/storage if applied.
+# Review the selected plan and current price with the owner before provisioning.
+services:
+  - type: web
+    name: kindling-ai
+    runtime: docker
+    plan: 0.5c-512mb
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    disk:
+      name: kindling-quota
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DEEPSEEK_MODEL
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: QUOTA_FILE
+        value: /data/free-usage.json
+      - key: MONITORING_ENABLED
+        value: "false"
+      - key: MONITORING_FILE
+        value: /data/market-monitors.json
+      - key: MONITORING_DAILY_LIMIT
+        value: "100"
+      - key: PRO_PURCHASES_ENABLED
+        value: "false"
+# Add TAVILY_API_KEY securely in the hosting dashboard to enable web research.
+# Add Apple verification configuration and complete real sandbox tests before Pro.
