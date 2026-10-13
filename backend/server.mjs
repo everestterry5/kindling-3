@@ -85,10 +85,12 @@ export function createServer({ env = process.env, apple = configureAppleSubscrip
         text: parsed.text, insight: parsed.insight, action: parsed.action, signal: parsed.signal,
         sources: extractSources(openAIData), researchedAt: new Date().toISOString()
       }, cors(request));
-    } catch {
+    } catch (error) {
       refundQuota?.();
-      // Do not log prompts, receipts, identifiers, private keys, or upstream bodies.
-      logger.error("AI request failed");
+      // Log only fixed diagnostic categories, never provider text or private inputs.
+      const diagnostic = ['analysis_format', 'analysis_sections', 'analysis_upstream', 'analysis_truncated', 'chat_upstream', 'chat_format', 'upstream_format'].includes(error?.message)
+        ? error.message : error?.name === 'TimeoutError' ? 'provider_timeout' : 'upstream_failure';
+      logger.error("AI request failed", diagnostic);
       return json(response, 502, { error: "Kindling AI is temporarily unavailable. Please try again." }, cors(request));
     }
   }
