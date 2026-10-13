@@ -47,7 +47,7 @@ export function buildAnalysisRequest(body, research, model) {
     competitors: [{ name: 'Sourced alternative', x: 0.3, y: 0.4, rationale: 'Evidence and inference behind placement', sourceURLs: [] }]
   };
   return {
-    model, response_format: { type: 'json_object' }, max_tokens: 8000,
+    model, thinking: { type: 'disabled' }, response_format: { type: 'json_object' }, max_tokens: 8000,
     messages: [
       { role: 'system', content: [
         'You are Kindling, a practical early-stage business analyst. Return ONLY a JSON object matching the example exactly, with every section in order.',
